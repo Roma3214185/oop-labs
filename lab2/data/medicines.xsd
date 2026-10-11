@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Schema of the medicines catalogue. The root element is Medicine,
+    it contains a list of drugs.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+    <!-- ===================== Root element ===================== -->
+
+    <xs:element name="Medicine" type="MedicineType">
+        <xs:unique name="uniqueDrugName">
+            <xs:selector xpath="drug"/>
+            <xs:field xpath="name"/>
+        </xs:unique>
+    </xs:element>
+
+    <!-- ===================== Complex types ===================== -->
+
+    <xs:complexType name="MedicineType">
+        <xs:sequence>
+            <xs:element name="drug" type="DrugType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="DrugType">
+        <xs:sequence>
+            <xs:element name="name" type="TitleType"/>
+            <xs:element name="pharm" type="TitleType"/>
+            <xs:element name="group" type="GroupType"/>
+            <xs:element name="analogs" type="AnalogsType" minOccurs="0"/>
+            <xs:element name="versions" type="VersionsType"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="DrugIdType" use="required"/>
+        <xs:attribute name="prescription" type="xs:boolean"
+                      default="false"/>
+    </xs:complexType>
+
+    <xs:complexType name="AnalogsType">
+        <xs:sequence>
+            <xs:element name="analog" type="TitleType"
+                        maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="VersionsType">
+        <xs:sequence>
+            <xs:element name="version" type="VersionType"
+                        maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Version (form) of the drug, may have several producers. -->
+    <xs:complexType name="VersionType">
+        <xs:sequence>
+            <xs:element name="producer" type="ProducerType"
+                        maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="form" type="FormType" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="ProducerType">
+        <xs:sequence>
+            <xs:element name="certificate" type="CertificateType"/>
+            <xs:element name="package" type="PackageType"/>
+            <xs:element name="dosage" type="DosageType"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="TitleType" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="CertificateType">
+        <xs:sequence>
+            <xs:element name="number" type="CertificateNumberType"/>
+            <xs:element name="issueDate" type="xs:date"/>
+            <xs:element name="expiryDate" type="xs:date"/>
+            <xs:element name="registeredBy" type="TitleType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PackageType">
+        <xs:sequence>
+            <xs:element name="quantity" type="QuantityType"/>
+            <xs:element name="price" type="PriceType"/>
+        </xs:sequence>
+        <xs:attribute name="type" type="PackKindType" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="PriceType">
+        <xs:simpleContent>
+            <xs:extension base="PriceValueType">
+                <xs:attribute name="currency" type="CurrencyType"
+                              default="UAH"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="DosageType">
+        <xs:sequence>
+            <xs:element name="amount" type="AmountType"/>
+            <xs:element name="perDay" type="PerDayType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AmountType">
+        <xs:simpleContent>
+            <xs:extension base="AmountValueType">
+                <xs:attribute name="unit" type="DosageUnitType"
+                              use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- ===================== Simple types ===================== -->
+
+    <xs:simpleType name="DrugIdType">
+        <xs:restriction base="xs:ID">
+            <xs:pattern value="drug-\d{3}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="TitleType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="2"/>
+            <xs:maxLength value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="GroupType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="antibiotics"/>
+            <xs:enumeration value="analgesics"/>
+            <xs:enumeration value="antipyretics"/>
+            <xs:enumeration value="vitamins"/>
+            <xs:enumeration value="antivirals"/>
+            <xs:enumeration value="antihistamines"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="FormType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="tablets"/>
+            <xs:enumeration value="capsules"/>
+            <xs:enumeration value="powder"/>
+            <xs:enumeration value="drops"/>
+            <xs:enumeration value="syrup"/>
+            <xs:enumeration value="injection"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Ukrainian registration certificate number, e.g. UA/1234/01/01 -->
+    <xs:simpleType name="CertificateNumberType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="UA/\d{4,5}/\d{2}/\d{2}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PackKindType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="blister"/>
+            <xs:enumeration value="bottle"/>
+            <xs:enumeration value="box"/>
+            <xs:enumeration value="sachet"/>
+            <xs:enumeration value="ampoule"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="QuantityType">
+        <xs:restriction base="xs:positiveInteger">
+            <xs:maxInclusive value="1000"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PriceValueType">
+        <xs:restriction base="xs:decimal">
+            <xs:minExclusive value="0"/>
+            <xs:maxInclusive value="100000"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CurrencyType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="UAH"/>
+            <xs:enumeration value="USD"/>
+            <xs:enumeration value="EUR"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AmountValueType">
+        <xs:restriction base="xs:decimal">
+            <xs:minExclusive value="0"/>
+            <xs:maxInclusive value="5000"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="DosageUnitType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="mg"/>
+            <xs:enumeration value="mcg"/>
+            <xs:enumeration value="g"/>
+            <xs:enumeration value="ml"/>
+            <xs:enumeration value="drops"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PerDayType">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="1"/>
+            <xs:maxInclusive value="12"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

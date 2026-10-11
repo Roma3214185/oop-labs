@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Medicine xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="medicines.xsd">
+    <drug id="drug-001" prescription="true">
+        <name>Amoxil</name>
+        <pharm>GlaxoSmithKline</pharm>
+        <group>antibiotics</group>
+        <analogs>
+            <analog>Flemoxin Solutab</analog>
+            <analog>Ospamox</analog>
+        </analogs>
+        <versions>
+            <version form="tablets">
+                <producer name="GlaxoSmithKline UK">
+                    <certificate>
+                        <number>UA/1001/01/01</number>
+                        <issueDate>2021-03-15</issueDate>
+                        <expiryDate>2026-03-15</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>20</quantity>
+                        <price currency="UAH">185.40</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">500</amount>
+                        <perDay>3</perDay>
+                    </dosage>
+                </producer>
+                <producer name="Teva Pharmaceuticals">
+                    <certificate>
+                        <number>UA/1001/01/02</number>
+                        <issueDate>2022-06-01</issueDate>
+                        <expiryDate>2027-06-01</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>16</quantity>
+                        <price currency="UAH">142.10</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">500</amount>
+                        <perDay>3</perDay>
+                    </dosage>
+                </producer>
+            </version>
+            <version form="powder">
+                <producer name="GlaxoSmithKline UK">
+                    <certificate>
+                        <number>UA/1001/02/01</number>
+                        <issueDate>2021-03-15</issueDate>
+                        <expiryDate>2026-03-15</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="bottle">
+                        <quantity>1</quantity>
+                        <price currency="UAH">121.00</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">250</amount>
+                        <perDay>3</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+    <drug id="drug-002" prescription="true">
+        <name>Sumamed</name>
+        <pharm>Teva</pharm>
+        <group>antibiotics</group>
+        <analogs>
+            <analog>Azithromycin</analog>
+            <analog>Azitrox</analog>
+        </analogs>
+        <versions>
+            <version form="capsules">
+                <producer name="Pliva Hrvatska">
+                    <certificate>
+                        <number>UA/2034/01/01</number>
+                        <issueDate>2020-09-10</issueDate>
+                        <expiryDate>2025-09-10</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>6</quantity>
+                        <price currency="UAH">256.75</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">250</amount>
+                        <perDay>1</perDay>
+                    </dosage>
+                </producer>
+            </version>
+            <version form="tablets">
+                <producer name="Pliva Hrvatska">
+                    <certificate>
+                        <number>UA/2034/02/01</number>
+                        <issueDate>2020-09-10</issueDate>
+                        <expiryDate>2025-09-10</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>3</quantity>
+                        <price currency="UAH">298.30</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">500</amount>
+                        <perDay>1</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+    <drug id="drug-003">
+        <name>Nurofen</name>
+        <pharm>Reckitt Benckiser</pharm>
+        <group>analgesics</group>
+        <analogs>
+            <analog>Ibuprofen</analog>
+            <analog>Ibuprom</analog>
+            <analog>Brufen</analog>
+        </analogs>
+        <versions>
+            <version form="tablets">
+                <producer name="Reckitt Benckiser Healthcare">
+                    <certificate>
+                        <number>UA/3110/01/01</number>
+                        <issueDate>2022-01-20</issueDate>
+                        <expiryDate>2027-01-20</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>24</quantity>
+                        <price currency="UAH">98.60</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">200</amount>
+                        <perDay>3</perDay>
+                    </dosage>
+                </producer>
+            </version>
+            <version form="syrup">
+                <producer name="Reckitt Benckiser Healthcare">
+                    <certificate>
+                        <number>UA/3110/02/01</number>
+                        <issueDate>2022-01-20</issueDate>
+                        <expiryDate>2027-01-20</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="bottle">
+                        <quantity>1</quantity>
+                        <price currency="UAH">134.20</price>
+                    </package>
+                    <dosage>
+                        <amount unit="ml">5</amount>
+                        <perDay>3</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+    <drug id="drug-004">
+        <name>Paracetamol</name>
+        <pharm>Darnytsia</pharm>
+        <group>antipyretics</group>
+        <analogs>
+            <analog>Panadol</analog>
+            <analog>Efferalgan</analog>
+        </analogs>
+        <versions>
+            <version form="tablets">
+                <producer name="Darnytsia">
+                    <certificate>
+                        <number>UA/0456/01/01</number>
+                        <issueDate>2019-11-05</issueDate>
+                        <expiryDate>2029-11-05</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>10</quantity>
+                        <price currency="UAH">12.35</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">500</amount>
+                        <perDay>4</perDay>
+                    </dosage>
+                </producer>
+                <producer name="Zdorovye">
+                    <certificate>
+                        <number>UA/0456/01/02</number>
+                        <issueDate>2021-04-12</issueDate>
+                        <expiryDate>2026-04-12</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>20</quantity>
+                        <price currency="UAH">18.90</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">500</amount>
+                        <perDay>4</perDay>
+                    </dosage>
+                </producer>
+            </version>
+            <version form="powder">
+                <producer name="Darnytsia">
+                    <certificate>
+                        <number>UA/0456/02/01</number>
+                        <issueDate>2019-11-05</issueDate>
+                        <expiryDate>2029-11-05</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="sachet">
+                        <quantity>10</quantity>
+                        <price currency="UAH">64.00</price>
+                    </package>
+                    <dosage>
+                        <amount unit="g">1</amount>
+                        <perDay>3</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+    <drug id="drug-005">
+        <name>Aevit</name>
+        <pharm>Kyiv Vitamin Plant</pharm>
+        <group>vitamins</group>
+        <versions>
+            <version form="capsules">
+                <producer name="Kyiv Vitamin Plant">
+                    <certificate>
+                        <number>UA/5678/01/01</number>
+                        <issueDate>2023-02-28</issueDate>
+                        <expiryDate>2028-02-28</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>20</quantity>
+                        <price currency="UAH">45.80</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">200</amount>
+                        <perDay>1</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+    <drug id="drug-006">
+        <name>Ascorbic Acid</name>
+        <pharm>Kyiv Vitamin Plant</pharm>
+        <group>vitamins</group>
+        <analogs>
+            <analog>Vitamin C</analog>
+            <analog>Cevicap</analog>
+        </analogs>
+        <versions>
+            <version form="tablets">
+                <producer name="Kyiv Vitamin Plant">
+                    <certificate>
+                        <number>UA/5701/01/01</number>
+                        <issueDate>2023-05-10</issueDate>
+                        <expiryDate>2028-05-10</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="bottle">
+                        <quantity>50</quantity>
+                        <price currency="UAH">9.75</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">50</amount>
+                        <perDay>2</perDay>
+                    </dosage>
+                </producer>
+            </version>
+            <version form="injection">
+                <producer name="Farmak">
+                    <certificate>
+                        <number>UA/5701/02/01</number>
+                        <issueDate>2022-08-17</issueDate>
+                        <expiryDate>2027-08-17</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="ampoule">
+                        <quantity>10</quantity>
+                        <price currency="UAH">76.40</price>
+                    </package>
+                    <dosage>
+                        <amount unit="ml">2</amount>
+                        <perDay>1</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+    <drug id="drug-007" prescription="true">
+        <name>Tamiflu</name>
+        <pharm>Roche</pharm>
+        <group>antivirals</group>
+        <analogs>
+            <analog>Oseltamivir</analog>
+        </analogs>
+        <versions>
+            <version form="capsules">
+                <producer name="F. Hoffmann-La Roche">
+                    <certificate>
+                        <number>UA/7020/01/01</number>
+                        <issueDate>2021-10-01</issueDate>
+                        <expiryDate>2026-10-01</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>10</quantity>
+                        <price currency="UAH">1240.00</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">75</amount>
+                        <perDay>2</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+    <drug id="drug-008">
+        <name>Claritin</name>
+        <pharm>Bayer</pharm>
+        <group>antihistamines</group>
+        <analogs>
+            <analog>Loratadine</analog>
+            <analog>Lorano</analog>
+        </analogs>
+        <versions>
+            <version form="tablets">
+                <producer name="Bayer Consumer Care">
+                    <certificate>
+                        <number>UA/8123/01/01</number>
+                        <issueDate>2022-12-01</issueDate>
+                        <expiryDate>2027-12-01</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="blister">
+                        <quantity>10</quantity>
+                        <price currency="UAH">156.90</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">10</amount>
+                        <perDay>1</perDay>
+                    </dosage>
+                </producer>
+            </version>
+            <version form="syrup">
+                <producer name="Bayer Consumer Care">
+                    <certificate>
+                        <number>UA/8123/02/01</number>
+                        <issueDate>2022-12-01</issueDate>
+                        <expiryDate>2027-12-01</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="bottle">
+                        <quantity>1</quantity>
+                        <price currency="UAH">189.50</price>
+                    </package>
+                    <dosage>
+                        <amount unit="ml">10</amount>
+                        <perDay>1</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+</Medicine>
