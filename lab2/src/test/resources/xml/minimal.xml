@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Optional attributes and elements are omitted. -->
+<Medicine>
+    <drug id="drug-100">
+        <name>Validol</name>
+        <pharm><![CDATA[Darnytsia & Co]]></pharm>
+        <group>analgesics</group>
+        <versions>
+            <version form="drops">
+                <producer name="Darnytsia">
+                    <certificate>
+                        <number>UA/0001/01/01</number>
+                        <issueDate>2020-01-01</issueDate>
+                        <expiryDate>2030-01-01</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="bottle">
+                        <quantity>1</quantity>
+                        <price>25.50</price>
+                    </package>
+                    <dosage>
+                        <amount unit="drops">5</amount>
+                        <perDay>3</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+</Medicine>

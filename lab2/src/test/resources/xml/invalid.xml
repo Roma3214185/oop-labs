@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Breaks the schema: bad id, unknown group, negative price,
+     too many doses per day, missing form attribute. -->
+<Medicine>
+    <drug id="42">
+        <name>Bad</name>
+        <pharm>Nobody</pharm>
+        <group>sweets</group>
+        <versions>
+            <version>
+                <producer name="Nobody">
+                    <certificate>
+                        <number>UA/0001/01/01</number>
+                        <issueDate>2020-01-01</issueDate>
+                        <expiryDate>2030-01-01</expiryDate>
+                        <registeredBy>Ministry of Health of Ukraine</registeredBy>
+                    </certificate>
+                    <package type="bottle">
+                        <quantity>1</quantity>
+                        <price>-1</price>
+                    </package>
+                    <dosage>
+                        <amount unit="mg">5</amount>
+                        <perDay>20</perDay>
+                    </dosage>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+</Medicine>

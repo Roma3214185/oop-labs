@@ -29,8 +29,6 @@ public abstract class AbstractDrugParser implements DrugParser {
         try (InputStream in =
                 new BufferedInputStream(Files.newInputStream(xml))) {
             parse(in, assembler);
-        } catch (XmlProcessingException e) {
-            throw e;
         } catch (Exception e) {
             LOGGER.error("{} failed to parse {}: {}", parserName, xml,
                     e.getMessage());

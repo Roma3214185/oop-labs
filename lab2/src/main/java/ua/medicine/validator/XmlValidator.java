@@ -39,12 +39,9 @@ public class XmlValidator {
     public ValidationResult validate(Path xml, Path xsd)
             throws XmlProcessingException {
         LOGGER.debug("Validating {} against {}", xml, xsd);
+        Validator validator = loadSchema(xsd).newValidator();
         CollectingErrorHandler handler = new CollectingErrorHandler();
         try {
-            SchemaFactory factory = SchemaFactory.newInstance(
-                    XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(xsd.toFile());
-            Validator validator = schema.newValidator();
             validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             validator.setErrorHandler(handler);
@@ -65,6 +62,19 @@ public class XmlValidator {
             result.errors().forEach(error -> LOGGER.warn("  {}", error));
         }
         return result;
+    }
+
+    private static Schema loadSchema(Path xsd)
+            throws XmlProcessingException {
+        try {
+            SchemaFactory factory = SchemaFactory.newInstance(
+                    XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            return factory.newSchema(xsd.toFile());
+        } catch (SAXException e) {
+            LOGGER.error("Cannot load schema {}: {}", xsd, e.getMessage());
+            throw new XmlProcessingException(
+                    "Cannot load schema " + xsd + ": " + e.getMessage(), e);
+        }
     }
 
     /**
