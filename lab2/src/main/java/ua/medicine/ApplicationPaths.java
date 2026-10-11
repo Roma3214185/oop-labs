@@ -1,5 +1,6 @@
 package ua.medicine;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -13,12 +14,10 @@ import java.util.Objects;
  */
 public record ApplicationPaths(Path xml, Path xsd, Path xsl, Path output) {
 
-    /** Paths used when no command line arguments are given. */
-    public static final ApplicationPaths DEFAULT = new ApplicationPaths(
-            Path.of("data", "medicines.xml"),
-            Path.of("data", "medicines.xsd"),
-            Path.of("data", "medicines-by-group.xsl"),
-            Path.of("output", "medicines-by-group.xml"));
+    /** Folder with the XML, XSD and XSL files. */
+    static final String DATA_DIR = "data";
+    /** Folder of this project inside the repository. */
+    static final String PROJECT_DIR = "lab2";
 
     private static final int ARGUMENT_COUNT = 4;
 
@@ -42,7 +41,7 @@ public record ApplicationPaths(Path xml, Path xsd, Path xsl, Path output) {
      */
     public static ApplicationPaths fromArgs(String... args) {
         if (args.length == 0) {
-            return DEFAULT;
+            return defaults(Path.of(""));
         }
         if (args.length != ARGUMENT_COUNT) {
             throw new IllegalArgumentException(
@@ -50,5 +49,26 @@ public record ApplicationPaths(Path xml, Path xsd, Path xsl, Path output) {
         }
         return new ApplicationPaths(Path.of(args[0]), Path.of(args[1]),
                 Path.of(args[2]), Path.of(args[3]));
+    }
+
+    /**
+     * Creates default paths. The files are looked up in the
+     * {@code data} folder of the working directory or, when the
+     * application is started from the repository root, of the
+     * {@code lab2} folder.
+     *
+     * @param workingDir directory the application is started from
+     * @return default paths
+     */
+    static ApplicationPaths defaults(Path workingDir) {
+        Path base = Files.isDirectory(workingDir.resolve(DATA_DIR))
+                ? workingDir
+                : workingDir.resolve(PROJECT_DIR);
+        Path data = base.resolve(DATA_DIR);
+        return new ApplicationPaths(
+                data.resolve("medicines.xml"),
+                data.resolve("medicines.xsd"),
+                data.resolve("medicines-by-group.xsl"),
+                base.resolve("output").resolve("medicines-by-group.xml"));
     }
 }

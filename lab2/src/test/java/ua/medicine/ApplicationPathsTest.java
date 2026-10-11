@@ -1,19 +1,38 @@
 package ua.medicine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class ApplicationPathsTest {
 
     @Test
     void defaultsAreUsedWithoutArguments() {
-        assertSame(ApplicationPaths.DEFAULT, ApplicationPaths.fromArgs());
-        assertEquals(TestData.XML, ApplicationPaths.DEFAULT.xml());
+        ApplicationPaths paths = ApplicationPaths.fromArgs();
+
+        assertEquals(TestData.XML, paths.xml());
+        assertEquals(TestData.XSD, paths.xsd());
+        assertEquals(TestData.XSL, paths.xsl());
+        assertEquals(Path.of("output", "medicines-by-group.xml"),
+                paths.output());
+    }
+
+    @Test
+    void defaultsAreFoundFromRepositoryRoot(@TempDir Path root)
+            throws IOException {
+        Files.createDirectories(root.resolve("lab2").resolve("data"));
+
+        ApplicationPaths paths = ApplicationPaths.defaults(root);
+
+        assertEquals(root.resolve("lab2/data/medicines.xml"), paths.xml());
+        assertEquals(root.resolve("lab2/output/medicines-by-group.xml"),
+                paths.output());
     }
 
     @Test
