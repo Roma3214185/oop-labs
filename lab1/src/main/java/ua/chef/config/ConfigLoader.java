@@ -58,11 +58,21 @@ public class ConfigLoader {
      * @return configuration
      */
     public AppConfig loadDefault() {
+        return loadResource(DEFAULT_RESOURCE);
+    }
+
+    /**
+     * Loads configuration from a classpath resource.
+     *
+     * @param resource absolute resource name
+     * @return configuration
+     */
+    AppConfig loadResource(String resource) {
         try (InputStream in =
-                ConfigLoader.class.getResourceAsStream(DEFAULT_RESOURCE)) {
+                ConfigLoader.class.getResourceAsStream(resource)) {
             if (in == null) {
                 throw new IllegalStateException(
-                        "Resource not found: " + DEFAULT_RESOURCE);
+                        "Resource not found: " + resource);
             }
             return load(in);
         } catch (IOException e) {
