@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tests log only fatal problems to keep the build output clean. -->
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5level %logger{1} - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="fatal">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

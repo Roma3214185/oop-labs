@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="logDir">logs</Property>
+        <Property name="consolePattern">%d{HH:mm:ss.SSS} %-5level %logger{1} - %msg%n</Property>
+        <Property name="filePattern">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n%throwable</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${consolePattern}"/>
+        </Console>
+        <RollingFile name="File"
+                     fileName="${logDir}/medicine.log"
+                     filePattern="${logDir}/medicine-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${filePattern}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Application: INFO to console, DEBUG and above to file. -->
+        <Logger name="ua.medicine" level="debug" additivity="false">
+            <AppenderRef ref="Console" level="info"/>
+            <AppenderRef ref="File"/>
+        </Logger>
+        <Root level="warn">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

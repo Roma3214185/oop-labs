@@ -31,7 +31,19 @@
     <xsl:template match="drug">
         <drug>
             <xsl:copy-of select="@*"/>
-            <xsl:copy-of select="*[not(self::group)]"/>
+            <xsl:apply-templates select="*[not(self::group)]" mode="copy"/>
         </drug>
+    </xsl:template>
+
+    <!-- Copies an element without inherited namespace declarations. -->
+    <xsl:template match="*" mode="copy">
+        <xsl:element name="{local-name()}">
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates select="node()" mode="copy"/>
+        </xsl:element>
+    </xsl:template>
+
+    <xsl:template match="text()" mode="copy">
+        <xsl:value-of select="."/>
     </xsl:template>
 </xsl:stylesheet>
