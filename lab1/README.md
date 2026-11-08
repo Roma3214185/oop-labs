@@ -1,33 +1,47 @@
 # Лабораторна робота 1 — Шеф-кухар
 
-Ієрархія овочів, приготування салату, підрахунок калорійності,
-сортування інгредієнтів за параметром і пошук овочів у діапазоні
-калорійності.
+Ієрархія овочів, приготування салату, підрахунок калорійності й
+вартості, сортування овочів салату за одним із параметрів і пошук
+овочів у заданому діапазоні калорійності.
+
+## Як це працює
+
+1. **Готуємо салат.** Користувач обирає овоч зі списку і вводить масу в
+   грамах. Шеф готує овоч (`prepare()`: нарізати, натерти...) і додає його
+   в салат. Пункт `0. Finish` завершує приготування.
+2. **Результат.** Виводиться таблиця всіх інгредієнтів і підсумок: маса,
+   калорійність, вартість салату.
+3. **Аналіз.** Меню з пунктами: сортування за масою, за калорійністю на
+   100 г, за калорійністю в салаті, за вартістю, пошук овочів у діапазоні
+   калорійності, `0` — вихід.
 
 ## Структура пакетів
 
 | Пакет | Призначення |
 |-------|-------------|
-| `ua.chef.model.vegetable` | абстрактний `Vegetable` і категорії: `RootVegetable`, `FruitVegetable`, `LeafyVegetable`, `BulbVegetable` |
-| `ua.chef.model.vegetable.kind` | конкретні овочі (`Carrot`, `Tomato`, `Onion`, ...) |
-| `ua.chef.model` | `Salad` (калорії, сортування, пошук), `Recipe` |
-| `ua.chef.factory` | `VegetableType`, `VegetableFactory` — створення овочів за назвою |
-| `ua.chef.sort` | `SortCriterion` — компаратори для сортування |
-| `ua.chef.service` | `Chef` — готує салат за рецептом |
-| `ua.chef.config` | `AppConfig`, `ConfigLoader` — параметри з `.properties` файлу |
-| `ua.chef.view` | `SaladPrinter` — виведення в консоль |
+| `ua.chef.model.vegetable` | абстрактний клас `Vegetable` (назва, маса, ккал/100 г, ціна за кг; розрахунок калорій і вартості) і його нащадки `Tomato`, `Cucumber`, `Carrot`, `BellPepper`, `Onion`, `Cabbage`, `Lettuce`, `Radish`; `VegetableType` — каталог овочів для меню |
+| `ua.chef.model` | `Salad` — список інгредієнтів, загальні маса, калорійність, вартість |
+| `ua.chef.strategy` | патерн Strategy: інтерфейс `VegetableStrategy`, сортування `SortBy...Strategy`, пошук `CaloriesRangeStrategy` |
+| `ua.chef.view` | `SaladPrinter` — виведення таблиць у консоль |
+| `ua.chef.menu` | `SaladMenu` — консольне меню |
+| `ua.chef` | `ChefApplication` — точка входу |
+
+## ООП у проєкті
+
+- **Успадкування:** `Tomato extends Vegetable` — спільні поля й логіка
+  винесені в базовий клас; стратегії реалізують інтерфейс `VegetableStrategy`.
+- **Поліморфізм:** кожен овоч по-своєму реалізує `prepare()`; кожна стратегія
+  по-своєму реалізує `apply()`. `Salad.select(strategy)` не знає, яка саме
+  стратегія прийшла.
+- **Інкапсуляція:** `private final` поля, перевірка значень у конструкторах,
+  `Salad` віддає список інгредієнтів лише для читання.
 
 ## Запуск
 
 ```bash
 mvn clean package
-java -jar target/chef-salad-1.0.0.jar                  # src/main/resources/salad.properties
-java -jar target/chef-salad-1.0.0.jar my-salad.properties
+java -jar target/chef-salad-1.0.0.jar
 ```
-
-Параметри ініціалізації (рецепт, критерій сортування, діапазон
-калорійності) задаються у файлі
-[salad.properties](src/main/resources/salad.properties).
 
 ## Тести
 

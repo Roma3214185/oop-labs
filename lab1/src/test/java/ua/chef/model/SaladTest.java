@@ -1,103 +1,103 @@
 package ua.chef.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import ua.chef.model.vegetable.Carrot;
+import ua.chef.model.vegetable.Tomato;
 import ua.chef.model.vegetable.Vegetable;
-import ua.chef.model.vegetable.kind.Cucumber;
-import ua.chef.model.vegetable.kind.Garlic;
-import ua.chef.model.vegetable.kind.Onion;
-import ua.chef.model.vegetable.kind.Tomato;
+import ua.chef.strategy.VegetableStrategy;
 
+@ExtendWith(MockitoExtension.class)
 class SaladTest {
 
     private static final double DELTA = 1e-9;
 
+    @Mock
+    private VegetableStrategy strategy;
+
     private Salad salad;
     private Vegetable tomato;
-    private Vegetable cucumber;
-    private Vegetable onion;
-    private Vegetable garlic;
+    private Vegetable carrot;
 
     @BeforeEach
     void setUp() {
-        salad = new Salad("Test");
-        tomato = new Tomato(200);     // 36 kcal
-        cucumber = new Cucumber(100); // 15 kcal
-        onion = new Onion(50);        // 20 kcal
-        garlic = new Garlic(2);       // 2.98 kcal
-        salad.addIngredient(tomato);
-        salad.addIngredient(cucumber);
-        salad.addIngredient(onion);
-        salad.addIngredient(garlic);
+        salad = new Salad();
+        tomato = new Tomato(200);
+        carrot = new Carrot(100);
     }
 
     @Test
-    void totalCaloriesIsSumOfIngredients() {
-        assertEquals(36 + 15 + 20 + 2.98, salad.getTotalCalories(), DELTA);
+    void newSaladIsEmpty() {
+        assertTrue(salad.isEmpty());
+        assertTrue(salad.getIngredients().isEmpty());
+        assertEquals(0, salad.getTotalWeight(), DELTA);
+        assertEquals(0, salad.getTotalCalories(), DELTA);
+        assertEquals(0, salad.getTotalPrice(), DELTA);
     }
 
     @Test
-    void totalWeightIsSumOfIngredients() {
-        assertEquals(352, salad.getTotalWeight(), DELTA);
+    void keepsIngredientsInAddingOrder() {
+        salad.add(tomato);
+        salad.add(carrot);
+
+        assertFalse(salad.isEmpty());
+        assertEquals(List.of(tomato, carrot), salad.getIngredients());
     }
 
     @Test
-    void emptySaladHasNoCalories() {
-        Salad empty = new Salad("Empty");
-
-        assertEquals(0, empty.getTotalCalories(), DELTA);
-        assertTrue(empty.getIngredients().isEmpty());
+    void rejectsNullIngredient() {
+        assertThrows(NullPointerException.class, () -> salad.add(null));
     }
 
     @Test
-    void ingredientsAreSortedByComparator() {
-        salad.sortIngredients(
-                Comparator.comparingDouble(Vegetable::getCalories));
+    void ingredientsCannotBeModifiedOutside() {
+        salad.add(tomato);
 
-        assertEquals(List.of(garlic, cucumber, onion, tomato),
-                salad.getIngredients());
-    }
-
-    @Test
-    void findsIngredientsInCaloriesRangeInclusive() {
-        assertEquals(List.of(cucumber, onion),
-                salad.findByCalories(15, 20));
-        assertEquals(List.of(), salad.findByCalories(100, 200));
-    }
-
-    @Test
-    void invalidRangeIsRejected() {
-        assertThrows(IllegalArgumentException.class,
-                () -> salad.findByCalories(30, 10));
-    }
-
-    @Test
-    void ingredientsCannotBeModifiedFromOutside() {
         assertThrows(UnsupportedOperationException.class,
-                () -> salad.getIngredients().clear());
+                () -> salad.getIngredients().add(carrot));
     }
 
     @Test
-    void nullArgumentsAreRejected() {
-        assertThrows(NullPointerException.class,
-                () -> salad.addIngredient(null));
-        assertThrows(NullPointerException.class,
-                () -> salad.sortIngredients(null));
-        assertThrows(IllegalArgumentException.class, () -> new Salad(""));
-        assertThrows(IllegalArgumentException.class, () -> new Salad(null));
+    void calculatesTotals() {
+        salad.add(tomato);
+        salad.add(carrot);
+
+        assertEquals(300, salad.getTotalWeight(), DELTA);
+        // 200 g * 18 / 100 + 100 g * 41 / 100
+        assertEquals(36 + 41, salad.getTotalCalories(), DELTA);
+        // 0.2 kg * 80 + 0.1 kg * 25
+        assertEquals(16 + 2.5, salad.getTotalPrice(), DELTA);
     }
 
     @Test
-    void toStringShowsSummary() {
-        assertEquals("Test", salad.getName());
-        assertEquals("Test: 4 ingredients, 74.0 kcal", salad.toString());
+    void delegatesSelectionToStrategy() {
+        salad.add(tomato);
+        salad.add(carrot);
+        List<Vegetable> expected = List.of(carrot);
+        when(strategy.apply(List.of(tomato, carrot))).thenReturn(expected);
+
+        List<Vegetable> result = salad.select(strategy);
+
+        assertSame(expected, result);
+        verify(strategy).apply(List.of(tomato, carrot));
+    }
+
+    @Test
+    void rejectsNullStrategy() {
+        assertThrows(NullPointerException.class, () -> salad.select(null));
     }
 }
