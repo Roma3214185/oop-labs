@@ -1,95 +1,116 @@
 package ua.medicine.validator;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStream;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import ua.medicine.TestData;
-import ua.medicine.exception.XmlProcessingException;
+import ua.medicine.XmlException;
 
 class XmlValidatorTest {
 
-    private final XmlValidator validator = new XmlValidator();
+    private XmlValidator validator;
 
-    @Test
-    void validDocumentPasses() throws XmlProcessingException {
-        ValidationResult result = validator.validate(TestData.XML,
-                TestData.XSD);
+    @BeforeEach
+    void setUp() throws XmlException {
+        validator = new XmlValidator(
+                getClass().getResourceAsStream("/xml/medicines.xsd"));
+    }
 
-        assertTrue(result.isValid());
-        assertEquals(List.of(), result.errors());
+    private boolean isValid(String xml) {
+        return validator.isValid(TestData.stream(xml));
     }
 
     @Test
-    void documentWithOptionalPartsOmittedPasses()
-            throws XmlProcessingException {
-        assertTrue(validator.validate(TestData.resource("minimal.xml"),
-                TestData.XSD).isValid());
+    void acceptsValidDocument() {
+        assertTrue(isValid(TestData.VALID_XML));
     }
 
     @Test
-    void everySchemaViolationIsReported() throws XmlProcessingException {
-        ValidationResult result = validator.validate(
-                TestData.resource("invalid.xml"), TestData.XSD);
-
-        assertFalse(result.isValid());
-        String errors = String.join("\n", result.errors());
-        assertTrue(errors.contains("'42'"), errors);
-        assertTrue(errors.contains("'sweets'"), errors);
-        assertTrue(errors.contains("'-1'"), errors);
-        assertTrue(errors.contains("'20'"), errors);
-        assertTrue(errors.contains("'form'"), errors);
-        assertTrue(result.errors().get(0).startsWith("line "));
+    void acceptsRealDataFile() {
+        assertTrue(validator.isValid(
+                getClass().getResourceAsStream("/xml/medicines.xml")));
     }
 
     @Test
-    void duplicateIdsAreReported(@TempDir Path dir) throws Exception {
-        String xml = Files.readString(TestData.XML)
-                .replace("drug-002", "drug-001");
-        Path file = dir.resolve("duplicate.xml");
-        Files.writeString(file, xml);
-
-        ValidationResult result = validator.validate(file, TestData.XSD);
-
-        assertFalse(result.isValid());
-        assertTrue(result.errors().get(0).contains("drug-001"));
+    void acceptsDrugsInAnyOrder() {
+        assertTrue(isValid(TestData.medicine(TestData.ASCORBIC,
+                TestData.AMOXIL)));
     }
 
     @Test
-    void malformedDocumentIsReportedAsError()
-            throws XmlProcessingException {
-        ValidationResult result = validator.validate(
-                TestData.resource("malformed.xml"), TestData.XSD);
+    void acceptsElementsOfDrugInAnyOrder() {
+        String xml = TestData.VALID_XML.replace(
+                "<name>Амоксил</name>\n    <pharm>GlaxoSmithKline</pharm>",
+                "<pharm>GlaxoSmithKline</pharm>\n    <name>Амоксил</name>");
 
-        assertEquals(1, result.errors().size());
+        assertTrue(xml.indexOf("<pharm>GlaxoSmithKline")
+                < xml.indexOf("<name>Амоксил"));
+        assertTrue(isValid(xml));
     }
 
     @Test
-    void missingFilesAreReported(@TempDir Path dir) {
-        assertThrows(XmlProcessingException.class, () -> validator.validate(
-                TestData.XML, dir.resolve("absent.xsd")));
-        assertThrows(XmlProcessingException.class, () -> validator.validate(
-                dir.resolve("absent.xml"), TestData.XSD));
+    void acceptsDrugWithoutAnalogs() {
+        assertTrue(isValid(TestData.medicine(TestData.ASCORBIC)));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @CsvSource(delimiter = '|', value = {
+        "невідома одиниця дозування | unit=\"MG\"         | unit=\"KG\"",
+        "немає одиниці дозування    | unit=\"MG\"         | ''",
+        "дубль id                   | id=\"d2\"           | id=\"d1\"",
+        "id починається з цифри     | id=\"d1\"           | id=\"1\"",
+        "немає id                   | id=\"d1\"           | ''",
+        "дубль назви препарату      | Аскорбінова кислота | Амоксил",
+        "невідома група             | ANTIBIOTIC          | CANDY",
+        "невідома форма             | TABLETS             | PILLS",
+        "невідомий тип упаковки     | BLISTER             | BAG",
+        "нульова ціна               | 185.40              | 0",
+        "три знаки після коми       | 185.40              | 185.401",
+        "кількість більше 1000      | quantity=\"20\"     | quantity=\"1001\"",
+        "прийомів на день більше 12 | perDay=\"3\"        | perDay=\"13\"",
+        "номер свідоцтва            | UA/1001/01          | 1001-01",
+        "неправильна дата           | 2021-03-15          | 15.03.2021",
+        "коротка назва              | <name>Амоксил       | <name>А",
+        "немає фірми                | <pharm>GlaxoSmithKline</pharm> | ''",
+        "невідомий елемент          | <group>VITAMIN</group> | <group>VITAMIN</group><price>1</price>",
+    })
+    void rejectsInvalidDocument(String description, String from, String to) {
+        String xml = TestData.VALID_XML.replace(from, to);
+
+        assertNotEquals(TestData.VALID_XML, xml, "заміна не спрацювала");
+        assertFalse(isValid(xml));
     }
 
     @Test
-    void resultIsImmutable() throws IOException {
-        List<String> errors = new ArrayList<>(List.of("e"));
-        ValidationResult result = new ValidationResult(errors);
-        errors.clear();
+    void rejectsMalformedXml() {
+        assertFalse(isValid("<Medicine><drug>"));
+    }
 
-        assertEquals(List.of("e"), result.errors());
-        assertThrows(UnsupportedOperationException.class,
-                () -> result.errors().clear());
+    @Test
+    void rejectsUnreadableStream() {
+        InputStream broken = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("диск недоступний");
+            }
+        };
+
+        assertFalse(validator.isValid(broken));
+    }
+
+    @Test
+    void failsOnBrokenSchema() {
+        assertThrows(XmlException.class,
+                () -> new XmlValidator(TestData.stream("<xs:schema>")));
     }
 }

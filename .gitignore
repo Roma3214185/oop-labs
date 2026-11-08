@@ -10,7 +10,7 @@ logs/
 *.log
 
 # Generated output of the applications
-lab2/output/
+output/
 
 # IDE
 .idea/

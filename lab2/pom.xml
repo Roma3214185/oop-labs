@@ -101,6 +101,10 @@
                         <configuration>
                             <excludes>
                                 <exclude>*MockitoMock*</exclude>
+                                <exclude>sun.*</exclude>
+                                <exclude>com.sun.*</exclude>
+                                <exclude>jdk.*</exclude>
+                                <exclude>java.*</exclude>
                             </excludes>
                         </configuration>
                     </execution>

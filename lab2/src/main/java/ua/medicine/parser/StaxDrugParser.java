@@ -6,41 +6,35 @@ import java.util.Map;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
- * Pull parser that uses StAX.
+ * StAX-парсер: читає документ потоком, але наступну подію запитуємо
+ * самі в циклі (pull).
  */
-public class StaxDrugParser extends AbstractDrugParser {
+public class StaxDrugParser extends DrugParser {
 
     @Override
-    protected void parse(InputStream in, DrugAssembler assembler)
-            throws XMLStreamException {
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-        factory.setProperty(
-                XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-        XMLStreamReader reader = factory.createXMLStreamReader(in);
+    protected void read(InputStream xml, DrugBuilder builder)
+            throws Exception {
+        XMLStreamReader reader =
+                XMLInputFactory.newInstance().createXMLStreamReader(xml);
         StringBuilder text = new StringBuilder();
         try {
             while (reader.hasNext()) {
                 switch (reader.next()) {
                     case XMLStreamConstants.START_ELEMENT -> {
                         text.setLength(0);
-                        assembler.startElement(reader.getLocalName(),
-                                attributes(reader));
+                        builder.startElement(reader.getLocalName(),
+                                attributesOf(reader));
                     }
-                    case XMLStreamConstants.CHARACTERS,
-                            XMLStreamConstants.CDATA ->
+                    case XMLStreamConstants.CHARACTERS ->
                             text.append(reader.getText());
-                    case XMLStreamConstants.END_ELEMENT -> {
-                        assembler.endElement(reader.getLocalName(),
-                                text.toString());
-                        text.setLength(0);
-                    }
+                    case XMLStreamConstants.END_ELEMENT ->
+                            builder.endElement(reader.getLocalName(),
+                                    text.toString());
                     default -> {
-                        // comments, processing instructions, etc.
+                        // коментарі, кінець документа тощо
                     }
                 }
             }
@@ -49,12 +43,12 @@ public class StaxDrugParser extends AbstractDrugParser {
         }
     }
 
-    private static Map<String, String> attributes(XMLStreamReader reader) {
-        Map<String, String> map = new HashMap<>();
+    private static Map<String, String> attributesOf(XMLStreamReader reader) {
+        Map<String, String> attributes = new HashMap<>();
         for (int i = 0; i < reader.getAttributeCount(); i++) {
-            map.put(reader.getAttributeLocalName(i),
+            attributes.put(reader.getAttributeLocalName(i),
                     reader.getAttributeValue(i));
         }
-        return map;
+        return attributes;
     }
 }

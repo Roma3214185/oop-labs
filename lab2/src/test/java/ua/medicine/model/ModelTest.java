@@ -6,200 +6,135 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import ua.medicine.TestData;
 
 class ModelTest {
 
-    /**
-     * Checks equals and hashCode: equal copies are equal, and changing
-     * any single property breaks equality.
-     */
-    @SafeVarargs
-    private static <T> void assertEqualsContract(Supplier<T> factory,
-            Consumer<T>... modifications) {
-        T value = factory.get();
-        assertEquals(value, value);
-        assertEquals(value, factory.get());
-        assertEquals(value.hashCode(), factory.get().hashCode());
-        assertNotEquals(value, null);
-        assertNotEquals(value, new Object());
-        for (Consumer<T> modification : modifications) {
-            T changed = factory.get();
-            modification.accept(changed);
-            assertNotEquals(value, changed);
-        }
+    @Test
+    void minPriceIsCheapestPackageOfAllProducers() {
+        assertEquals(142.10, TestData.amoxil().getMinPrice());
+        assertEquals(25.00, TestData.ascorbic().getMinPrice());
     }
 
     @Test
-    void certificateEquality() {
-        assertEqualsContract(() -> new Certificate("UA/0001/01/01",
-                        LocalDate.of(2020, 1, 1), LocalDate.of(2025, 1, 1),
-                        "MOH"),
-                c -> c.setNumber("UA/0002/01/01"),
-                c -> c.setIssueDate(LocalDate.of(2019, 1, 1)),
-                c -> c.setExpiryDate(LocalDate.of(2026, 1, 1)),
-                c -> c.setRegisteredBy("Other"));
+    void minPriceIsZeroWithoutProducers() {
+        Drug drug = TestData.drug("d1", "Назва", "Фірма", DrugGroup.VITAMIN);
+        drug.addVersion(new Version(DrugForm.SYRUP));
+
+        assertEquals(0, drug.getMinPrice());
     }
 
     @Test
-    void certificateValidity() {
-        Certificate certificate = new Certificate("UA/0001/01/01",
-                LocalDate.of(2020, 1, 1), LocalDate.of(2025, 1, 1), "MOH");
+    void storesAllFields() {
+        Drug drug = TestData.amoxil();
+        Producer producer = drug.getVersions().get(0).getProducers().get(0);
 
-        assertTrue(certificate.isValidOn(LocalDate.of(2020, 1, 1)));
-        assertTrue(certificate.isValidOn(LocalDate.of(2025, 1, 1)));
-        assertFalse(certificate.isValidOn(LocalDate.of(2019, 12, 31)));
-        assertFalse(certificate.isValidOn(LocalDate.of(2025, 1, 2)));
-        assertEquals("UA/0001/01/01", certificate.getNumber());
-        assertEquals("MOH", certificate.getRegisteredBy());
-        assertEquals("Certificate{UA/0001/01/01, 2020-01-01 - 2025-01-01,"
-                + " MOH}", certificate.toString());
+        assertEquals("d1", drug.getId());
+        assertEquals("Амоксил", drug.getName());
+        assertEquals("GlaxoSmithKline", drug.getPharm());
+        assertEquals(DrugGroup.ANTIBIOTIC, drug.getGroup());
+        assertEquals(DrugForm.TABLETS, drug.getVersions().get(0).getForm());
+        assertEquals("GSK UK", producer.getName());
+        assertEquals("UA/1001/01", producer.getCertificate().number());
+        assertEquals(20, producer.getDrugPackage().quantity());
+        assertEquals(DosageUnit.MG, producer.getDosage().unit());
     }
 
     @Test
-    void packageEquality() {
-        assertEqualsContract(() -> new DrugPackage(PackageType.BOX, 10,
-                        new BigDecimal("9.99"), Currency.UAH),
-                p -> p.setType(PackageType.BOTTLE),
-                p -> p.setQuantity(11),
-                p -> p.setPrice(BigDecimal.ONE),
-                p -> p.setCurrency(Currency.USD));
+    void listsAreReadOnly() {
+        Drug drug = TestData.amoxil();
+
+        assertThrows(UnsupportedOperationException.class,
+                () -> drug.getAnalogs().add("x"));
+        assertThrows(UnsupportedOperationException.class,
+                () -> drug.getVersions().clear());
+        assertThrows(UnsupportedOperationException.class,
+                () -> drug.getVersions().get(0).getProducers().clear());
     }
 
     @Test
-    void packageDefaultsToHryvnia() {
-        DrugPackage drugPackage = new DrugPackage();
+    void equalDrugsHaveSameHashCode() {
+        Drug drug = TestData.amoxil();
 
-        assertEquals(Currency.UAH, drugPackage.getCurrency());
-        assertEquals("Package{null x0, null UAH}", drugPackage.toString());
+        assertEquals(drug, drug);
+        assertEquals(TestData.amoxil(), drug);
+        assertEquals(TestData.amoxil().hashCode(), drug.hashCode());
+        assertNotEquals(TestData.ascorbic(), drug);
+        assertFalse(drug.equals("Амоксил"));
     }
 
-    @Test
-    void dosageEqualityAndDailyAmount() {
-        assertEqualsContract(() -> new Dosage(new BigDecimal("250"),
-                        DosageUnit.MG, 3),
-                d -> d.setAmount(BigDecimal.TEN),
-                d -> d.setUnit(DosageUnit.G),
-                d -> d.setPerDay(2));
-        Dosage dosage = new Dosage(new BigDecimal("250"), DosageUnit.MG, 3);
-
-        assertEquals(new BigDecimal("750"), dosage.getDailyAmount());
-        assertEquals("Dosage{250 MG x3/day}", dosage.toString());
+    /** Кожна зміна одного поля робить препарат нерівним початковому. */
+    static Stream<Consumer<Drug>> changes() {
+        return Stream.of(
+                drug -> drug.setId("x"),
+                drug -> drug.setName("x"),
+                drug -> drug.setPharm("x"),
+                drug -> drug.setGroup(DrugGroup.VITAMIN),
+                drug -> drug.addAnalog("x"),
+                drug -> drug.addVersion(new Version(DrugForm.DROPS)));
     }
 
-    @Test
-    void producerEquality() {
-        assertEqualsContract(() -> new Producer("Farmak", new Certificate(),
-                        new DrugPackage(), new Dosage()),
-                p -> p.setName("Other"),
-                p -> p.setCertificate(null),
-                p -> p.setDrugPackage(null),
-                p -> p.setDosage(null));
-        assertTrue(new Producer().toString().startsWith("Producer{null"));
+    @ParameterizedTest
+    @MethodSource("changes")
+    void differentFieldMakesDrugsDifferent(Consumer<Drug> change) {
+        Drug changed = TestData.amoxil();
+        change.accept(changed);
+
+        assertNotEquals(TestData.amoxil(), changed);
     }
 
     @Test
     void versionEquality() {
-        assertEqualsContract(() -> {
-            Version version = new Version(DrugForm.POWDER);
-            version.addProducer(new Producer());
-            return version;
-        },
-                v -> v.setForm(DrugForm.DROPS),
-                v -> v.addProducer(new Producer()));
-        assertEquals("Version{null, []}", new Version().toString());
+        Version version = TestData.amoxil().getVersions().get(0);
+        Version other = new Version(DrugForm.TABLETS);
+
+        assertEquals(version, version);
+        assertEquals(TestData.amoxil().getVersions().get(0), version);
+        assertEquals(TestData.amoxil().getVersions().get(0).hashCode(),
+                version.hashCode());
+        assertNotEquals(other, version);
+        assertNotEquals(new Version(DrugForm.DROPS), other);
+        assertFalse(version.equals("TABLETS"));
     }
 
     @Test
-    void versionProducersAreReadOnly() {
-        Version version = new Version();
+    void producerEquality() {
+        Producer producer = new Producer("П");
+        producer.setCertificate(TestData.amoxil().getVersions().get(0)
+                .getProducers().get(0).getCertificate());
 
-        assertThrows(UnsupportedOperationException.class,
-                () -> version.getProducers().add(new Producer()));
-        assertThrows(NullPointerException.class,
-                () -> version.addProducer(null));
+        assertEquals(producer, producer);
+        assertFalse(producer.equals("П"));
+        assertNotEquals(new Producer("Інший"), new Producer("П"));
+        assertNotEquals(new Producer("П"), producer);
+
+        Producer withPackage = new Producer("П");
+        withPackage.setDrugPackage(new DrugPackage(PackageType.BOX, 1, 1));
+        assertNotEquals(new Producer("П"), withPackage);
+
+        Producer withDosage = new Producer("П");
+        withDosage.setDosage(new Dosage(1, DosageUnit.G, 1));
+        assertNotEquals(new Producer("П"), withDosage);
+
+        assertEquals(new Producer("П"), new Producer("П"));
+        assertEquals(new Producer("П").hashCode(),
+                new Producer("П").hashCode());
     }
 
     @Test
-    void drugEquality() {
-        assertEqualsContract(TestData::aevit,
-                d -> d.setId("drug-999"),
-                d -> d.setName("Other"),
-                d -> d.setPharm("Other"),
-                d -> d.setGroup(DrugGroup.ANTIBIOTICS),
-                d -> d.setPrescription(true),
-                d -> d.addAnalog("Other"),
-                d -> d.addVersion(new Version()));
-    }
+    void toStringShowsContent() {
+        String text = TestData.amoxil().toString();
 
-    @Test
-    void drugAccessors() {
-        Drug drug = new Drug();
-        drug.addAnalog("A");
-
-        assertEquals(List.of("A"), drug.getAnalogs());
-        assertThrows(UnsupportedOperationException.class,
-                () -> drug.getAnalogs().clear());
-        assertThrows(UnsupportedOperationException.class,
-                () -> drug.getVersions().clear());
-        assertThrows(NullPointerException.class, () -> drug.addAnalog(null));
-        assertThrows(NullPointerException.class,
-                () -> drug.addVersion(null));
-        assertTrue(TestData.aevit().toString()
-                .startsWith("Drug{id=drug-005, name=Aevit"));
-    }
-
-    @Test
-    void gettersReturnParsedValues() {
-        Drug drug = TestData.aevit();
-        Producer producer = drug.getVersions().get(0).getProducers().get(0);
-        Certificate certificate = producer.getCertificate();
-        DrugPackage drugPackage = producer.getDrugPackage();
-        Dosage dosage = producer.getDosage();
-
-        assertEquals("Kyiv Vitamin Plant", drug.getPharm());
-        assertEquals(DrugForm.CAPSULES, drug.getVersions().get(0).getForm());
-        assertEquals(LocalDate.of(2023, 2, 28), certificate.getIssueDate());
-        assertEquals(LocalDate.of(2028, 2, 28), certificate.getExpiryDate());
-        assertEquals(PackageType.BLISTER, drugPackage.getType());
-        assertEquals(20, drugPackage.getQuantity());
-        assertEquals(new BigDecimal("45.80"), drugPackage.getPrice());
-        assertEquals(new BigDecimal("200"), dosage.getAmount());
-        assertEquals(DosageUnit.MG, dosage.getUnit());
-        assertEquals(1, dosage.getPerDay());
-    }
-
-    @Test
-    void minPriceIsCheapestPackage() {
-        Drug drug = TestData.drug("d", "D", DrugGroup.VITAMINS, "30.00");
-        Version version = new Version(DrugForm.SYRUP);
-        Producer cheap = new Producer();
-        cheap.setDrugPackage(new DrugPackage(PackageType.BOTTLE, 1,
-                new BigDecimal("12.50"), Currency.UAH));
-        version.addProducer(cheap);
-        Producer withoutPrice = new Producer();
-        withoutPrice.setDrugPackage(new DrugPackage());
-        version.addProducer(withoutPrice);
-        drug.addVersion(version);
-
-        assertEquals(Optional.of(new BigDecimal("12.50")),
-                drug.getMinPrice());
-    }
-
-    @Test
-    void minPriceIsEmptyWithoutPackages() {
-        assertEquals(Optional.empty(),
-                TestData.drug("d", "D", DrugGroup.VITAMINS, null)
-                        .getMinPrice());
-        assertEquals(Optional.empty(), new Drug().getMinPrice());
+        assertTrue(text.contains("name=Амоксил"));
+        assertTrue(text.contains("form=TABLETS"));
+        assertTrue(text.contains("name=GSK UK"));
+        assertTrue(text.contains("price=185.4"));
     }
 }

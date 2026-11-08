@@ -6,16 +6,18 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Version (form) of a drug made by one or several producers.
+ * Варіант виконання препарату (таблетки, сироп...) та його виробники.
  */
 public class Version {
 
-    private DrugForm form;
+    private final DrugForm form;
     private final List<Producer> producers = new ArrayList<>();
 
-    public Version() {
-    }
-
+    /**
+     * Створює варіант виконання.
+     *
+     * @param form форма випуску
+     */
     public Version(DrugForm form) {
         this.form = form;
     }
@@ -24,16 +26,12 @@ public class Version {
         return form;
     }
 
-    public void setForm(DrugForm form) {
-        this.form = form;
-    }
-
     public List<Producer> getProducers() {
         return Collections.unmodifiableList(producers);
     }
 
     public void addProducer(Producer producer) {
-        producers.add(Objects.requireNonNull(producer, "producer"));
+        producers.add(producer);
     }
 
     @Override
@@ -54,6 +52,6 @@ public class Version {
 
     @Override
     public String toString() {
-        return "Version{" + form + ", " + producers + "}";
+        return "Version{form=" + form + ", producers=" + producers + "}";
     }
 }

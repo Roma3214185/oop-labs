@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- ========================= Кореневий елемент ========================= -->
+
+    <xs:element name="Medicine" type="MedicineType">
+        <!-- id препарату унікальний (додатково до типу xs:ID) -->
+        <xs:key name="drugIdKey">
+            <xs:selector xpath="drug"/>
+            <xs:field xpath="@id"/>
+        </xs:key>
+        <!-- назва препарату теж не повторюється -->
+        <xs:unique name="drugNameUnique">
+            <xs:selector xpath="drug"/>
+            <xs:field xpath="name"/>
+        </xs:unique>
+    </xs:element>
+
+    <!-- ========================= Комплексні типи ========================= -->
+
+    <!-- Препарати повторюються скільки завгодно разів у будь-якому порядку -->
+    <xs:complexType name="MedicineType">
+        <xs:sequence>
+            <xs:element name="drug" type="DrugType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- xs:all: дочірні елементи можна писати в будь-якому порядку -->
+    <xs:complexType name="DrugType">
+        <xs:all>
+            <xs:element name="name" type="TitleType"/>
+            <xs:element name="pharm" type="TitleType"/>
+            <xs:element name="group" type="GroupType"/>
+            <xs:element name="analogs" type="AnalogsType" minOccurs="0"/>
+            <xs:element name="versions" type="VersionsType"/>
+        </xs:all>
+        <xs:attribute name="id" type="xs:ID" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="AnalogsType">
+        <xs:sequence>
+            <xs:element name="analog" type="TitleType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="VersionsType">
+        <xs:sequence>
+            <xs:element name="version" type="VersionType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Варіант виконання (форма), у нього може бути кілька виробників -->
+    <xs:complexType name="VersionType">
+        <xs:sequence>
+            <xs:element name="producer" type="ProducerType" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="form" type="FormType" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="ProducerType">
+        <xs:all>
+            <xs:element name="certificate" type="CertificateType"/>
+            <xs:element name="package" type="PackageType"/>
+            <xs:element name="dosage" type="DosageType"/>
+        </xs:all>
+        <xs:attribute name="name" type="TitleType" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="CertificateType">
+        <xs:attribute name="number" type="CertificateNumberType" use="required"/>
+        <xs:attribute name="issueDate" type="xs:date" use="required"/>
+        <xs:attribute name="expiryDate" type="xs:date" use="required"/>
+        <xs:attribute name="registeredBy" type="TitleType" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="PackageType">
+        <xs:attribute name="type" type="PackageKindType" use="required"/>
+        <xs:attribute name="quantity" type="QuantityType" use="required"/>
+        <xs:attribute name="price" type="PriceType" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="DosageType">
+        <xs:attribute name="amount" type="AmountType" use="required"/>
+        <xs:attribute name="unit" type="DosageUnitType" use="required"/>
+        <xs:attribute name="perDay" type="PerDayType" use="required"/>
+    </xs:complexType>
+
+    <!-- ========================= Прості типи ========================= -->
+
+    <xs:simpleType name="TitleType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="2"/>
+            <xs:maxLength value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Номер свідоцтва про реєстрацію, напр. UA/1001/01 -->
+    <xs:simpleType name="CertificateNumberType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="UA/\d{4}/\d{2}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Ціна за упаковку, грн: більше 0, не більше 100000, 2 знаки після коми -->
+    <xs:simpleType name="PriceType">
+        <xs:restriction base="xs:decimal">
+            <xs:minExclusive value="0"/>
+            <xs:maxInclusive value="100000"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Кількість в упаковці: від 1 до 1000 -->
+    <xs:simpleType name="QuantityType">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="1"/>
+            <xs:maxInclusive value="1000"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Доза за один прийом: більше 0, не більше 5000 -->
+    <xs:simpleType name="AmountType">
+        <xs:restriction base="xs:decimal">
+            <xs:minExclusive value="0"/>
+            <xs:maxInclusive value="5000"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Скільки разів на день: від 1 до 12 -->
+    <xs:simpleType name="PerDayType">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="1"/>
+            <xs:maxInclusive value="12"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="GroupType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ANTIBIOTIC"/>
+            <xs:enumeration value="ANTIHISTAMINE"/>
+            <xs:enumeration value="ANTIVIRAL"/>
+            <xs:enumeration value="PAINKILLER"/>
+            <xs:enumeration value="VITAMIN"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="FormType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="TABLETS"/>
+            <xs:enumeration value="CAPSULES"/>
+            <xs:enumeration value="POWDER"/>
+            <xs:enumeration value="DROPS"/>
+            <xs:enumeration value="SYRUP"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PackageKindType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="BLISTER"/>
+            <xs:enumeration value="BOTTLE"/>
+            <xs:enumeration value="BOX"/>
+            <xs:enumeration value="SACHET"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Одиниця вимірювання дози: лише ці значення -->
+    <xs:simpleType name="DosageUnitType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MG"/>
+            <xs:enumeration value="MCG"/>
+            <xs:enumeration value="G"/>
+            <xs:enumeration value="ML"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

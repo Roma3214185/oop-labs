@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Tests log only fatal problems to keep the build output clean. -->
+<!-- Під час тестів логи не потрібні: не засмічуємо вивід і не пишемо файл. -->
 <Configuration status="WARN">
-    <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%-5level %logger{1} - %msg%n"/>
-        </Console>
-    </Appenders>
     <Loggers>
-        <Root level="fatal">
-            <AppenderRef ref="Console"/>
-        </Root>
+        <Root level="off"/>
     </Loggers>
 </Configuration>

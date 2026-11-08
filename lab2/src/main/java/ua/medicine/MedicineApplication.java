@@ -1,123 +1,142 @@
 package ua.medicine;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.Locale;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import ua.medicine.comparator.DrugComparator;
-import ua.medicine.exception.XmlProcessingException;
+import ua.medicine.comparator.DrugGroupComparator;
+import ua.medicine.comparator.DrugNameComparator;
+import ua.medicine.comparator.DrugPriceComparator;
 import ua.medicine.model.Drug;
+import ua.medicine.parser.DomDrugParser;
 import ua.medicine.parser.DrugParser;
-import ua.medicine.parser.ParserType;
-import ua.medicine.transform.XslTransformer;
-import ua.medicine.validator.ValidationResult;
+import ua.medicine.parser.SaxDrugParser;
+import ua.medicine.parser.StaxDrugParser;
+import ua.medicine.transformer.XslTransformer;
 import ua.medicine.validator.XmlValidator;
 
 /**
- * Entry point: validates the medicines document, parses it with SAX,
- * StAX and DOM, sorts the drugs and groups them with XSLT.
+ * Точка входу: валідує XML, читає його трьома парсерами, сортує
+ * препарати й групує їх через XSL. Усі повідомлення йдуть у лог.
  */
 public class MedicineApplication {
 
     private static final Logger LOGGER =
             LogManager.getLogger(MedicineApplication.class);
 
-    private final XmlValidator validator;
-    private final XslTransformer transformer;
-    private final Function<ParserType, DrugParser> parserProvider;
+    static final String XML = "/xml/medicines.xml";
+    static final String XSD = "/xml/medicines.xsd";
+    static final String XSL = "/xml/medicines-by-group.xsl";
+    static final Path OUTPUT = Path.of("output", "medicines-by-group.xml");
+
+    private final String xml;
+    private final Path output;
+    private final List<DrugParser> parsers;
 
     /**
-     * Creates the application with the given collaborators.
-     *
-     * @param validator      XML validator
-     * @param transformer    XSL transformer
-     * @param parserProvider creates parsers by type
+     * Створює програму зі стандартними файлами й трьома парсерами.
      */
-    public MedicineApplication(XmlValidator validator,
-            XslTransformer transformer,
-            Function<ParserType, DrugParser> parserProvider) {
-        this.validator = validator;
-        this.transformer = transformer;
-        this.parserProvider = parserProvider;
+    public MedicineApplication() {
+        this(XML, OUTPUT, List.of(new DomDrugParser(), new SaxDrugParser(),
+                new StaxDrugParser()));
     }
 
     /**
-     * Runs the whole scenario.
+     * Створює програму з іншими файлами чи парсерами (для тестів).
      *
-     * @param paths files to work with
-     * @return true if every step succeeded
+     * @param xml     шлях до XML у ресурсах
+     * @param output  куди записати результат XSL
+     * @param parsers парсери, якими читати XML
      */
-    public boolean run(ApplicationPaths paths) {
+    MedicineApplication(String xml, Path output, List<DrugParser> parsers) {
+        this.xml = xml;
+        this.output = output;
+        this.parsers = parsers;
+    }
+
+    /**
+     * Виконує всі кроки по черзі.
+     *
+     * @return true, якщо всі кроки пройшли успішно
+     */
+    public boolean run() {
         try {
-            ValidationResult validation =
-                    validator.validate(paths.xml(), paths.xsd());
-            if (!validation.isValid()) {
-                LOGGER.error("Document {} is invalid, stopping",
-                        paths.xml());
+            byte[] document = readResource(xml);
+
+            XmlValidator validator = new XmlValidator(open(readResource(XSD)));
+            if (!validator.isValid(open(document))) {
+                LOGGER.error("{} не відповідає схемі, далі не йдемо", xml);
                 return false;
             }
-            Map<ParserType, List<Drug>> parsed = parseWithAll(paths);
-            List<Drug> drugs = parsed.get(ParserType.DOM);
-            if (parsed.values().stream().anyMatch(d -> !d.equals(drugs))) {
-                LOGGER.error("Parsers returned different results");
+
+            List<List<Drug>> results = new ArrayList<>();
+            for (DrugParser parser : parsers) {
+                results.add(parser.parse(open(document)));
+            }
+            List<Drug> drugs = results.get(0);
+            if (!results.stream().allMatch(drugs::equals)) {
+                LOGGER.error("Результати парсерів не збігаються");
                 return false;
             }
-            LOGGER.info("All parsers returned the same {} drugs",
-                    drugs.size());
-            for (DrugComparator comparator : DrugComparator.values()) {
-                logSorted(drugs, comparator);
-            }
-            transformer.transform(paths.xml(), paths.xsl(), paths.output());
+            LOGGER.info("Усі {} парсери повернули однакові {} препаратів",
+                    parsers.size(), drugs.size());
+
+            logSorted("Сортування за назвою", drugs, new DrugNameComparator());
+            logSorted("Сортування за групою", drugs, new DrugGroupComparator());
+            logSorted("Сортування за найнижчою ціною", drugs,
+                    new DrugPriceComparator());
+
+            new XslTransformer().transform(open(document),
+                    open(readResource(XSL)), output);
             return true;
-        } catch (XmlProcessingException e) {
-            LOGGER.error("Processing failed: {}", e.getMessage(), e);
+        } catch (XmlException | IOException e) {
+            LOGGER.error(e.getMessage());
             return false;
         }
     }
 
-    private Map<ParserType, List<Drug>> parseWithAll(ApplicationPaths paths)
-            throws XmlProcessingException {
-        Map<ParserType, List<Drug>> result = new EnumMap<>(ParserType.class);
-        for (ParserType type : ParserType.values()) {
-            result.put(type, parserProvider.apply(type).parse(paths.xml()));
-        }
-        return result;
-    }
-
-    /**
-     * Sorts a copy of the drugs and logs the order.
-     *
-     * @param drugs      drugs to sort
-     * @param comparator sort order
-     * @return sorted copy
-     */
-    List<Drug> logSorted(List<Drug> drugs, DrugComparator comparator) {
+    private static void logSorted(String title, List<Drug> drugs,
+            Comparator<Drug> comparator) {
         List<Drug> sorted = new ArrayList<>(drugs);
         sorted.sort(comparator);
-        LOGGER.info("Sorted {}:", comparator);
+        LOGGER.info("{}:", title);
         for (Drug drug : sorted) {
-            LOGGER.info("  {} {} [{}] min price {}", drug.getId(),
-                    drug.getName(), drug.getGroup().value(),
-                    drug.getMinPrice().map(String::valueOf).orElse("-"));
+            LOGGER.info(String.format(Locale.ROOT,
+                    "  %-4s %-22s %-14s від %.2f грн", drug.getId(),
+                    drug.getName(), drug.getGroup(), drug.getMinPrice()));
         }
-        return sorted;
+    }
+
+    private static byte[] readResource(String name)
+            throws XmlException, IOException {
+        try (InputStream in =
+                MedicineApplication.class.getResourceAsStream(name)) {
+            if (in == null) {
+                throw new XmlException("Не знайдено файл " + name);
+            }
+            return in.readAllBytes();
+        }
+    }
+
+    private static InputStream open(byte[] content) {
+        return new ByteArrayInputStream(content);
     }
 
     /**
-     * Starts the application.
+     * Запускає програму.
      *
-     * @param args nothing or {@code xml xsd xsl output}
+     * @param args не використовуються
      */
     public static void main(String[] args) {
-        MedicineApplication application = new MedicineApplication(
-                new XmlValidator(), new XslTransformer(),
-                ParserType::createParser);
-        boolean success = application.run(ApplicationPaths.fromArgs(args));
-        LOGGER.info("Finished {}", success ? "successfully" : "with errors");
+        boolean success = new MedicineApplication().run();
+        LOGGER.info(success ? "Готово" : "Завершено з помилками");
     }
 }

@@ -4,134 +4,107 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import ua.medicine.comparator.DrugComparator;
-import ua.medicine.exception.XmlProcessingException;
-import ua.medicine.model.Drug;
-import ua.medicine.model.DrugGroup;
+import ua.medicine.parser.DomDrugParser;
 import ua.medicine.parser.DrugParser;
-import ua.medicine.transform.XslTransformer;
-import ua.medicine.validator.ValidationResult;
-import ua.medicine.validator.XmlValidator;
+import ua.medicine.parser.SaxDrugParser;
+import ua.medicine.parser.StaxDrugParser;
 
-@ExtendWith(MockitoExtension.class)
 class MedicineApplicationTest {
 
-    private static final ApplicationPaths PATHS = new ApplicationPaths(
-            Path.of("m.xml"), Path.of("m.xsd"), Path.of("m.xsl"),
-            Path.of("out.xml"));
+    @TempDir
+    Path tempDir;
 
-    @Mock
-    private XmlValidator validator;
-
-    @Mock
-    private XslTransformer transformer;
-
-    @Mock
-    private DrugParser parser;
-
-    private MedicineApplication application;
-
-    private final List<Drug> drugs = List.of(
-            TestData.drug("d-2", "B", DrugGroup.VITAMINS, "2"),
-            TestData.drug("d-1", "A", DrugGroup.ANALGESICS, "1"));
-
-    @BeforeEach
-    void setUp() {
-        application = new MedicineApplication(validator, transformer,
-                type -> parser);
+    private static List<DrugParser> realParsers() {
+        return List.of(new DomDrugParser(), new SaxDrugParser(),
+                new StaxDrugParser());
     }
 
     @Test
-    void successfulRunValidatesParsesAndTransforms() throws Exception {
-        when(validator.validate(PATHS.xml(), PATHS.xsd()))
-                .thenReturn(new ValidationResult(List.of()));
-        when(parser.parse(PATHS.xml())).thenReturn(drugs);
+    void runsAllStepsAndWritesGroupedXml() throws Exception {
+        Path output = tempDir.resolve("out/medicines-by-group.xml");
 
-        assertTrue(application.run(PATHS));
+        boolean success = new MedicineApplication(MedicineApplication.XML,
+                output, realParsers()).run();
 
-        verify(transformer).transform(PATHS.xml(), PATHS.xsl(),
-                PATHS.output());
+        assertTrue(success);
+        String result = Files.readString(output);
+        assertTrue(result.contains("<MedicineByGroup>"));
+        assertTrue(result.contains("<VITAMIN>"));
     }
 
     @Test
-    void invalidDocumentStopsProcessing() throws Exception {
-        when(validator.validate(PATHS.xml(), PATHS.xsd()))
-                .thenReturn(new ValidationResult(List.of("error")));
+    void stopsWhenDocumentIsInvalid() {
+        DrugParser parser = mock(DrugParser.class);
+        Path output = tempDir.resolve("result.xml");
 
-        assertFalse(application.run(PATHS));
+        boolean success = new MedicineApplication("/invalid-medicines.xml",
+                output, List.of(parser)).run();
 
-        verifyNoInteractions(parser, transformer);
-    }
-
-    @Test
-    void differentParserResultsAreReported() throws Exception {
-        when(validator.validate(PATHS.xml(), PATHS.xsd()))
-                .thenReturn(new ValidationResult(List.of()));
-        when(parser.parse(PATHS.xml()))
-                .thenReturn(drugs, drugs, List.of());
-
-        assertFalse(application.run(PATHS));
-
-        verify(transformer, never()).transform(any(), any(), any());
-    }
-
-    @Test
-    void processingErrorIsReported() throws Exception {
-        when(validator.validate(PATHS.xml(), PATHS.xsd()))
-                .thenReturn(new ValidationResult(List.of()));
-        when(parser.parse(PATHS.xml())).thenReturn(drugs);
-        doThrow(new XmlProcessingException("boom"))
-                .when(transformer).transform(any(), any(), any());
-
-        assertFalse(application.run(PATHS));
-    }
-
-    @Test
-    void logSortedReturnsSortedCopy() {
-        List<Drug> sorted = application.logSorted(drugs,
-                DrugComparator.BY_NAME);
-
-        assertEquals(List.of(drugs.get(1), drugs.get(0)), sorted);
-        assertEquals("B", drugs.get(0).getName());
-    }
-
-    @Test
-    void mainProcessesRealFiles(@TempDir Path dir) {
-        Path output = dir.resolve("grouped.xml");
-
-        MedicineApplication.main(new String[] {TestData.XML.toString(),
-                TestData.XSD.toString(), TestData.XSL.toString(),
-                output.toString()});
-
-        assertTrue(Files.exists(output));
-    }
-
-    @Test
-    void mainStopsOnInvalidDocument(@TempDir Path dir) {
-        Path output = dir.resolve("grouped.xml");
-
-        MedicineApplication.main(new String[] {
-                TestData.resource("invalid.xml").toString(),
-                TestData.XSD.toString(), TestData.XSL.toString(),
-                output.toString()});
-
+        assertFalse(success);
         assertFalse(Files.exists(output));
+        verify(parser, never()).getName();
+    }
+
+    @Test
+    void stopsWhenParsersDisagree() throws Exception {
+        DrugParser empty = mock(DrugParser.class);
+        when(empty.parse(any())).thenReturn(List.of());
+        Path output = tempDir.resolve("result.xml");
+
+        boolean success = new MedicineApplication(MedicineApplication.XML,
+                output, List.of(new DomDrugParser(), empty)).run();
+
+        assertFalse(success);
+        assertFalse(Files.exists(output));
+    }
+
+    @Test
+    void stopsWhenParserFails() throws Exception {
+        DrugParser failing = mock(DrugParser.class);
+        when(failing.parse(any())).thenThrow(new XmlException("зламався"));
+
+        boolean success = new MedicineApplication(MedicineApplication.XML,
+                tempDir.resolve("result.xml"), List.of(failing)).run();
+
+        assertFalse(success);
+    }
+
+    @Test
+    void stopsWhenFileIsMissing() {
+        boolean success = new MedicineApplication("/no-such-file.xml",
+                tempDir.resolve("result.xml"), realParsers()).run();
+
+        assertFalse(success);
+    }
+
+    @Test
+    void stopsWhenOutputCannotBeWritten() throws Exception {
+        Path file = Files.createFile(tempDir.resolve("file"));
+
+        boolean success = new MedicineApplication(MedicineApplication.XML,
+                file.resolve("result.xml"), realParsers()).run();
+
+        assertFalse(success);
+    }
+
+    @Test
+    void mainWritesOutputFile() throws Exception {
+        MedicineApplication.main(new String[0]);
+
+        assertTrue(Files.exists(MedicineApplication.OUTPUT));
+        assertEquals("<?xml",
+                Files.readString(MedicineApplication.OUTPUT).substring(0, 5));
     }
 }

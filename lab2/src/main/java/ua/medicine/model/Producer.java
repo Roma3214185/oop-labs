@@ -3,32 +3,26 @@ package ua.medicine.model;
 import java.util.Objects;
 
 /**
- * Producer of a drug version with its certificate, package and dosage.
+ * Виробник конкретного варіанту препарату: свідоцтво, упаковка, дозування.
  */
 public class Producer {
 
-    private String name;
+    private final String name;
     private Certificate certificate;
     private DrugPackage drugPackage;
     private Dosage dosage;
 
-    public Producer() {
-    }
-
-    public Producer(String name, Certificate certificate,
-            DrugPackage drugPackage, Dosage dosage) {
+    /**
+     * Створює виробника.
+     *
+     * @param name назва виробника
+     */
+    public Producer(String name) {
         this.name = name;
-        this.certificate = certificate;
-        this.drugPackage = drugPackage;
-        this.dosage = dosage;
     }
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Certificate getCertificate() {
@@ -76,7 +70,7 @@ public class Producer {
 
     @Override
     public String toString() {
-        return "Producer{" + name + ", " + certificate + ", "
-                + drugPackage + ", " + dosage + "}";
+        return "Producer{name=" + name + ", certificate=" + certificate
+                + ", package=" + drugPackage + ", dosage=" + dosage + "}";
     }
 }

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Каталог лікарських препаратів. Схема: medicines.xsd -->
+<Medicine>
+    <drug id="d1">
+        <name>Амоксил</name>
+        <pharm>GlaxoSmithKline</pharm>
+        <group>CANDY</group>
+        <analogs>
+            <analog>Флемоксин Солютаб</analog>
+            <analog>Оспамокс</analog>
+        </analogs>
+        <versions>
+            <version form="TABLETS">
+                <producer name="GlaxoSmithKline UK">
+                    <certificate number="UA/1001/01" issueDate="2021-03-15"
+                                 expiryDate="2026-03-15" registeredBy="МОЗ України"/>
+                    <package type="BLISTER" quantity="20" price="185.40"/>
+                    <dosage amount="500" unit="MG" perDay="3"/>
+                </producer>
+                <producer name="Teva Pharmaceuticals">
+                    <certificate number="UA/1001/02" issueDate="2022-06-01"
+                                 expiryDate="2027-06-01" registeredBy="МОЗ України"/>
+                    <package type="BLISTER" quantity="16" price="142.10"/>
+                    <dosage amount="500" unit="MG" perDay="3"/>
+                </producer>
+            </version>
+            <version form="POWDER">
+                <producer name="GlaxoSmithKline UK">
+                    <certificate number="UA/1001/03" issueDate="2021-03-15"
+                                 expiryDate="2026-03-15" registeredBy="МОЗ України"/>
+                    <package type="BOTTLE" quantity="1" price="121.00"/>
+                    <dosage amount="250" unit="MG" perDay="3"/>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+
+    <drug id="d2">
+        <name>Нурофен</name>
+        <pharm>Reckitt Benckiser</pharm>
+        <group>PAINKILLER</group>
+        <analogs>
+            <analog>Ібупрофен</analog>
+            <analog>Ібуфен</analog>
+        </analogs>
+        <versions>
+            <version form="TABLETS">
+                <producer name="Reckitt Benckiser Healthcare">
+                    <certificate number="UA/2002/01" issueDate="2020-09-10"
+                                 expiryDate="2025-09-10" registeredBy="МОЗ України"/>
+                    <package type="BLISTER" quantity="12" price="98.50"/>
+                    <dosage amount="200" unit="MG" perDay="3"/>
+                </producer>
+            </version>
+            <version form="SYRUP">
+                <producer name="Reckitt Benckiser Healthcare">
+                    <certificate number="UA/2002/02" issueDate="2020-09-10"
+                                 expiryDate="2025-09-10" registeredBy="МОЗ України"/>
+                    <package type="BOTTLE" quantity="1" price="156.30"/>
+                    <dosage amount="5" unit="ML" perDay="3"/>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+
+    <drug id="d3">
+        <name>Аскорбінова кислота</name>
+        <pharm>Дарниця</pharm>
+        <group>VITAMIN</group>
+        <versions>
+            <version form="TABLETS">
+                <producer name="Дарниця">
+                    <certificate number="UA/3003/01" issueDate="2023-01-20"
+                                 expiryDate="2028-01-20" registeredBy="МОЗ України"/>
+                    <package type="BOTTLE" quantity="50" price="25.00"/>
+                    <dosage amount="100" unit="MG" perDay="2"/>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+
+    <drug id="d4">
+        <name>Сумамед</name>
+        <pharm>Teva</pharm>
+        <group>CANDY</group>
+        <analogs>
+            <analog>Азитроміцин</analog>
+        </analogs>
+        <versions>
+            <version form="CAPSULES">
+                <producer name="Pliva">
+                    <certificate number="UA/4004/01" issueDate="2022-02-14"
+                                 expiryDate="2027-02-14" registeredBy="МОЗ України"/>
+                    <package type="BLISTER" quantity="6" price="310.00"/>
+                    <dosage amount="250" unit="MG" perDay="1"/>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+
+    <!-- Елементи всередині drug можна писати в будь-якому порядку (xs:all) -->
+    <drug id="d5">
+        <group>VITAMIN</group>
+        <pharm>Medana Pharma</pharm>
+        <name>Аквадетрим</name>
+        <analogs>
+            <analog>Вігантол</analog>
+        </analogs>
+        <versions>
+            <version form="DROPS">
+                <producer name="Medana Pharma">
+                    <dosage amount="12.5" unit="MCG" perDay="1"/>
+                    <package type="BOTTLE" quantity="1" price="210.75"/>
+                    <certificate number="UA/5005/01" issueDate="2021-11-05"
+                                 expiryDate="2026-11-05" registeredBy="МОЗ України"/>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+
+    <drug id="d6">
+        <name>Цетрин</name>
+        <pharm>Dr. Reddy's</pharm>
+        <group>ANTIHISTAMINE</group>
+        <analogs>
+            <analog>Зодак</analog>
+            <analog>Цетиризин</analog>
+        </analogs>
+        <versions>
+            <version form="TABLETS">
+                <producer name="Dr. Reddy's Laboratories">
+                    <certificate number="UA/6006/01" issueDate="2023-04-01"
+                                 expiryDate="2028-04-01" registeredBy="МОЗ України"/>
+                    <package type="BLISTER" quantity="20" price="135.90"/>
+                    <dosage amount="10" unit="MG" perDay="1"/>
+                </producer>
+            </version>
+        </versions>
+    </drug>
+</Medicine>

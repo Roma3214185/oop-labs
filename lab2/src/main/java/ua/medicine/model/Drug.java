@@ -1,14 +1,12 @@
 package ua.medicine.model;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
- * Drug described by the {@code drug} element of the XML document.
+ * Лікарський препарат — відповідає елементу {@code drug} зі схеми.
  */
 public class Drug {
 
@@ -16,21 +14,8 @@ public class Drug {
     private String name;
     private String pharm;
     private DrugGroup group;
-    private boolean prescription;
     private final List<String> analogs = new ArrayList<>();
     private final List<Version> versions = new ArrayList<>();
-
-    public Drug() {
-    }
-
-    public Drug(String id, String name, String pharm, DrugGroup group,
-            boolean prescription) {
-        this.id = id;
-        this.name = name;
-        this.pharm = pharm;
-        this.group = group;
-        this.prescription = prescription;
-    }
 
     public String getId() {
         return id;
@@ -64,20 +49,12 @@ public class Drug {
         this.group = group;
     }
 
-    public boolean isPrescription() {
-        return prescription;
-    }
-
-    public void setPrescription(boolean prescription) {
-        this.prescription = prescription;
-    }
-
     public List<String> getAnalogs() {
         return Collections.unmodifiableList(analogs);
     }
 
     public void addAnalog(String analog) {
-        analogs.add(Objects.requireNonNull(analog, "analog"));
+        analogs.add(analog);
     }
 
     public List<Version> getVersions() {
@@ -85,22 +62,20 @@ public class Drug {
     }
 
     public void addVersion(Version version) {
-        versions.add(Objects.requireNonNull(version, "version"));
+        versions.add(version);
     }
 
     /**
-     * Finds the cheapest package price among all versions and producers.
+     * Повертає ціну найдешевшої упаковки серед усіх варіантів і виробників.
      *
-     * @return minimal price or empty if no prices are known
+     * @return мінімальна ціна, або 0, якщо виробників немає
      */
-    public Optional<BigDecimal> getMinPrice() {
+    public double getMinPrice() {
         return versions.stream()
-                .flatMap(v -> v.getProducers().stream())
-                .map(Producer::getDrugPackage)
-                .filter(Objects::nonNull)
-                .map(DrugPackage::getPrice)
-                .filter(Objects::nonNull)
-                .min(BigDecimal::compareTo);
+                .flatMap(version -> version.getProducers().stream())
+                .mapToDouble(producer -> producer.getDrugPackage().price())
+                .min()
+                .orElse(0);
     }
 
     @Override
@@ -111,8 +86,7 @@ public class Drug {
         if (!(o instanceof Drug other)) {
             return false;
         }
-        return prescription == other.prescription
-                && Objects.equals(id, other.id)
+        return Objects.equals(id, other.id)
                 && Objects.equals(name, other.name)
                 && Objects.equals(pharm, other.pharm)
                 && group == other.group
@@ -122,14 +96,13 @@ public class Drug {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, pharm, group, prescription, analogs,
-                versions);
+        return Objects.hash(id, name, pharm, group, analogs, versions);
     }
 
     @Override
     public String toString() {
         return "Drug{id=" + id + ", name=" + name + ", pharm=" + pharm
-                + ", group=" + group + ", prescription=" + prescription
-                + ", analogs=" + analogs + ", versions=" + versions + "}";
+                + ", group=" + group + ", analogs=" + analogs
+                + ", versions=" + versions + "}";
     }
 }

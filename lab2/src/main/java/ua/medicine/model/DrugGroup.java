@@ -1,24 +1,8 @@
 package ua.medicine.model;
 
 /**
- * Pharmacological group of a drug.
+ * Група препаратів (значення збігаються з XML).
  */
-public enum DrugGroup implements XmlValue {
-    ANTIBIOTICS("antibiotics"),
-    ANALGESICS("analgesics"),
-    ANTIPYRETICS("antipyretics"),
-    VITAMINS("vitamins"),
-    ANTIVIRALS("antivirals"),
-    ANTIHISTAMINES("antihistamines");
-
-    private final String value;
-
-    DrugGroup(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public String value() {
-        return value;
-    }
+public enum DrugGroup {
+    ANTIBIOTIC, ANTIHISTAMINE, ANTIVIRAL, PAINKILLER, VITAMIN
 }

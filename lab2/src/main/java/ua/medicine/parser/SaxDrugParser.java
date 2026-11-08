@@ -4,64 +4,57 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * Event based parser that uses SAX.
+ * SAX-парсер: читає документ потоком, сам викликає методи обробника на
+ * кожен тег (push).
  */
-public class SaxDrugParser extends AbstractDrugParser {
+public class SaxDrugParser extends DrugParser {
 
     @Override
-    protected void parse(InputStream in, DrugAssembler assembler)
+    protected void read(InputStream xml, DrugBuilder builder)
             throws Exception {
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        factory.setNamespaceAware(true);
-        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        factory.setFeature(
-                "http://apache.org/xml/features/disallow-doctype-decl",
-                true);
-        SAXParser parser = factory.newSAXParser();
-        parser.parse(in, new DrugHandler(assembler));
+        SAXParserFactory.newInstance()
+                .newSAXParser()
+                .parse(xml, new Handler(builder));
     }
 
     /**
-     * Forwards SAX events to the assembler.
+     * Пересилає події SAX у {@link DrugBuilder}.
      */
-    private static final class DrugHandler extends DefaultHandler {
+    private static final class Handler extends DefaultHandler {
 
-        private final DrugAssembler assembler;
+        private final DrugBuilder builder;
         private final StringBuilder text = new StringBuilder();
 
-        DrugHandler(DrugAssembler assembler) {
-            this.assembler = assembler;
+        Handler(DrugBuilder builder) {
+            this.builder = builder;
         }
 
         @Override
-        public void startElement(String uri, String localName,
-                String qName, Attributes attributes) {
+        public void startElement(String uri, String localName, String qName,
+                Attributes attributes) {
             text.setLength(0);
             Map<String, String> map = new HashMap<>();
             for (int i = 0; i < attributes.getLength(); i++) {
-                map.put(attributes.getLocalName(i), attributes.getValue(i));
+                map.put(attributes.getQName(i), attributes.getValue(i));
             }
-            assembler.startElement(localName, map);
+            builder.startElement(qName, map);
         }
 
         @Override
         public void characters(char[] ch, int start, int length) {
+            // текст може прийти кількома частинами, тому накопичуємо
             text.append(ch, start, length);
         }
 
         @Override
-        public void endElement(String uri, String localName,
-                String qName) {
-            assembler.endElement(localName, text.toString());
-            text.setLength(0);
+        public void endElement(String uri, String localName, String qName) {
+            builder.endElement(qName, text.toString());
         }
     }
 }
