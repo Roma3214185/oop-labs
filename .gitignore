@@ -5,6 +5,15 @@ build/
 bin/
 *.class
 
+# Android / Gradle
+.gradle/
+local.properties
+*.apk
+*.aab
+captures/
+.externalNativeBuild/
+.cxx/
+
 # Logs
 logs/
 *.log
