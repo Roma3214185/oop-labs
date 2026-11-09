@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 15 за замовчуванням малює вміст під системними панелями;
+         вимикаємо це, щоб текст не ховався під заголовком -->
+    <style name="Theme.Maze" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Лабіринт</string>
+    <string name="goal">Виведіть червону кульку до зеленого виходу</string>
+    <string name="maze_description">Лабіринт</string>
+    <string name="wall_hit">Там стіна!</string>
+    <string name="new_game">Нова гра</string>
+    <string name="language">Мова</string>
+    <string name="language_system">Як у системі</string>
+    <string name="move_up">Вгору</string>
+    <string name="move_down">Вниз</string>
+    <string name="move_left">Ліворуч</string>
+    <string name="move_right">Праворуч</string>
+    <string name="victory_title">Ви вибралися!</string>
+
+    <!-- В українській чотири форми: 1 крок, 2 кроки, 5 кроків, 1,5 кроку -->
+    <plurals name="moves">
+        <item quantity="one">%d крок</item>
+        <item quantity="few">%d кроки</item>
+        <item quantity="many">%d кроків</item>
+        <item quantity="other">%d кроку</item>
+    </plurals>
+    <plurals name="victory_message">
+        <item quantity="one">Ви вивели кульку з лабіринту за %d крок.</item>
+        <item quantity="few">Ви вивели кульку з лабіринту за %d кроки.</item>
+        <item quantity="many">Ви вивели кульку з лабіринту за %d кроків.</item>
+        <item quantity="other">Ви вивели кульку з лабіринту за %d кроку.</item>
+    </plurals>
+</resources>

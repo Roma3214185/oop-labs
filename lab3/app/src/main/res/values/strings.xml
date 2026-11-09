@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Англійська: мова за замовчуванням -->
+    <string name="app_name">Maze</string>
+    <string name="goal">Lead the red ball to the green exit</string>
+    <string name="maze_description">Maze</string>
+    <string name="wall_hit">There is a wall!</string>
+    <string name="new_game">New game</string>
+    <string name="language">Language</string>
+    <string name="language_system">System default</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="move_left">Move left</string>
+    <string name="move_right">Move right</string>
+    <string name="victory_title">You escaped!</string>
+
+    <plurals name="moves">
+        <item quantity="one">%d move</item>
+        <item quantity="other">%d moves</item>
+    </plurals>
+    <plurals name="victory_message">
+        <item quantity="one">You led the ball out of the maze in %d move.</item>
+        <item quantity="other">You led the ball out of the maze in %d moves.</item>
+    </plurals>
+
+    <!-- Не перекладаються: назва мови пишеться самою цією мовою -->
+    <string name="language_en" translatable="false">English</string>
+    <string name="language_uk" translatable="false">Українська</string>
+    <string name="arrow_up" translatable="false">↑</string>
+    <string name="arrow_down" translatable="false">↓</string>
+    <string name="arrow_left" translatable="false">←</string>
+    <string name="arrow_right" translatable="false">→</string>
+</resources>

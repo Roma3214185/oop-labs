@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="wall">#37474F</color>
+    <color name="path">#ECEFF1</color>
+    <color name="exit">#43A047</color>
+    <color name="player">#E53935</color>
+</resources>
